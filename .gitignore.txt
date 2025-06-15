@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+*.env
+.env
+.pytest_cache/
+.mypy_cache/
+.venv/
+
+# FastAPI / Uvicorn
+.uvicorn_reload_history
+
+# IDEs and Editors
+.vscode/        # VS Code
+.idea/          # PyCharm / IntelliJ
+*.sublime-project
+*.sublime-workspace
+
+# OS generated files
+.DS_Store       # macOS
+.Trash-* # macOS
+Thumbs.db       # Windows
+ehthumbs.db     # Windows
+*.log
+*.sqlite3
+
+# Specific to AgentMarket (if you plan to generate/store these locally)
+# If you decide to store OpenAPI specs locally (e.g., for testing), you might want to uncomment these
+# openapi_specs/
+# embeddings_cache/

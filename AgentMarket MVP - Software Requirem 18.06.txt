@@ -1,0 +1,221 @@
+AgentMarket MVP - Software Requirements Specification (SRS) (Enhanced Version)
+1. Introduction
+1.1 Purpose of the Document
+This document defines the functional and non-functional requirements for the Minimum Viable Product (MVP) of AgentMarket. In today's landscape, AI Agents often struggle to efficiently discover and integrate with external tools (APIs) because information is scattered across human-readable websites. AgentMarket aims to solve this by creating a platform exclusively for digital APIs, enabling service providers to list their services in a machine-readable format, and allowing AI Agents (and their developers) to discover and utilize these APIs through advanced semantic search and structured data.
+
+1.2 MVP Scope
+The MVP will focus on building the core infrastructure for AI-centric API discovery. It will support the following functionalities:
+
+Basic provider registration and login.
+Uploading digital APIs to the platform, requiring detailed textual descriptions for semantic processing and supporting OpenAPI/Swagger specifications for machine-readability.
+Intelligent Conversion of API Descriptions to Embedding vectors for precise semantic search.
+A Semantic Search API for AI Agents, designed to match agent intents with actionable API functionalities.
+Displaying full API details, including the structured OpenAPI Spec, facilitating direct integration by AI Agents.
+Basic usage tracking (counting API calls made via AgentMarket).
+No payment model (all services are free during MVP phase).
+No "Execution Engine" (AI Agents will directly call the provider's API after discovery).
+No support for human services.
+1.3 Key Value Proposition for AI Agents
+AgentMarket's primary value for AI Agents (and their developers) lies in transforming unstructured, human-centric web search for APIs into a structured, semantic, and machine-consumable discovery process.
+
+Semantic Matching: Agents can express their needs in natural language, and AgentMarket will intelligently match them to the functionality of APIs, not just keywords on documentation pages.
+Machine-Ready Integration: Instead of parsing web pages, Agents receive OpenAPI/Swagger specifications, enabling direct, programmatic understanding and consumption of APIs. This significantly reduces development effort and integration errors.
+Dedicated Tool Hub: AgentMarket serves as a centralized, specialized directory for AI-callable tools, making it easier for agents to find actionable capabilities for their tasks.
+2. Overall System Description
+AgentMarket will be a web platform comprising a Backend API, primarily for AI Agents, and a web-based Frontend for human service providers and AI developers. The system's core function is to facilitate the discovery and structured provision of digital APIs to AI entities.
+
+2.1 General Architecture (MVP)
+Backend: FastAPI (Python) - will handle business logic, database access, and integration with high-quality Embedding services.
+Database: MongoDB - for storing provider and service data, crucially including the high-dimensional Embedding vectors for efficient semantic search.
+Embedding Service: An external service (e.g., OpenAI Embeddings API) or a robust local model, responsible for converting API descriptions and search queries into numerical vectors, enabling semantic matching.
+Frontend: React/Next.js - a basic user interface for providers to list their APIs and for AI developers to explore the marketplace.
+2.2 User Flows
+2.2.1 Service Provider
+Registration/Login: A provider registers with an email and password, or logs into an existing account.
+Add New Service: A provider meticulously fills out a form including:
+Service Name: (string)
+Service Description: (a comprehensive, detailed string, at least 50 characters, optimized for accurate Embedding generation)
+Categories: (list of relevant strings, e.g., "Financial Analysis", "Natural Language Processing", "Image Generation")
+Tags: (optional list of free-form strings for additional keywords)
+API Endpoint URL: (valid URL, e.g., https://api.example.com/translate)
+HTTP Method: (GET/POST/PUT/DELETE)
+OpenAPI/Swagger Specification: A text area for the full, valid JSON code of the API Spec, crucial for AI agent integration.
+Manage Services: A provider can view, edit, and delete their listed services, ensuring their information remains accurate for AI discovery.
+2.2.2 AI Agent (via AI Agent Developer)
+Integration with AgentMarket API: An AI Agent developer integrates AgentMarket's dedicated API into their agent, allowing programmatic access to the marketplace (no API key required for MVP, free usage).
+Semantic Service Search: An AI Agent sends a natural language query describing its specific need or task.
+Receive Structured Search Results: AgentMarket processes the query semantically and returns a ranked list of relevant services. Each service result will include: id, name, description, api_endpoint, and crucially, the full OpenAPI/Swagger Spec (or a direct link to it) – enabling the agent to understand the API's structure and parameters programmatically.
+Direct Service Consumption: The AI Agent uses the received OpenAPI Spec and Endpoint to directly form requests and communicate with the provider's API. After a successful interaction, the agent performs a call to POST /api/services/{service_id}/usage on AgentMarket to mark usage, contributing to service analytics.
+2.3 User Stories
+As an API provider, I want to register on the platform and upload my text translation API with a detailed description and OpenAPI spec, so that AI agents can accurately discover and directly integrate with it, without needing to parse complex documentation.
+As an API provider, I want to see the list of APIs I've uploaded and refine their descriptions, ensuring they are semantically optimized for discovery by various AI agent queries.
+As an AI Agent developer, when my agent needs a specific capability (e.g., "flight price comparison"), I want to query AgentMarket with a natural language description of that capability, so that I quickly receive a list of relevant, directly usable APIs with their OpenAPI specifications.
+As an AI Agent, after performing a semantic search on AgentMarket and identifying a suitable API, I want to programmatically access its full OpenAPI Spec, so I can automatically construct the correct API calls and integrate the service into my task execution flow.
+As an AI Agent, once I have successfully executed a task by calling an API discovered through AgentMarket, I want to report this usage back to the platform, providing valuable data to the provider and contributing to the marketplace's overall utility metrics.
+3. Functional Requirements
+3.1 Provider Management
+FR1.1: The system shall allow a new service provider to register using an email and password.
+Permissions: Any user can register as a provider.
+FR1.2: The system shall allow an existing provider to log in using an email and password.
+Permissions: Registered provider.
+FR1.3: The system shall allow an authenticated provider to view a list of only the services they have uploaded.
+Permissions: Authenticated provider.
+FR1.4: The system shall allow an authenticated provider to edit the details of only their uploaded services, including refining descriptions and OpenAPI specs.
+Permissions: Authenticated provider.
+FR1.5: The system shall allow an authenticated provider to delete only their uploaded services.
+Permissions: Authenticated provider.
+3.2 Service Management (Digital APIs Only)
+FR2.1: The system shall allow a provider to add a new service with the following fields:
+Name: (string, required, max length 100 characters)
+Description: (string, required, minimum 50 characters, maximum 1000 characters, crucial for accurate Embedding generation)
+Categories: (list of strings, required, at least one category, e.g., "Finance", "AI/ML", "Geolocation")
+Tags: (list of strings, optional, up to 10 tags for additional keywords)
+API Endpoint: (valid URL, required, must be HTTPS for security)
+HTTP Method: (enum: GET, POST, PUT, DELETE, required)
+OpenAPI Spec JSON: (JSON String, optional but highly recommended, the system will not perform deep semantic validation on the OpenAPI Spec's functionality in MVP, but will perform basic JSON format validation).
+FR2.2: The system shall perform robust validation on the input data for services (e.g., URL format, required fields, minimum/maximum lengths).
+FR2.3: Upon creation or significant update of a service's description, the system shall automatically generate and store a high-quality Embedding vector for the service's textual description (and potentially combined relevant fields) in the database.
+3.3 Service Search and Discovery (Agent API)
+FR3.1: The system shall expose a RESTful endpoint for semantic service search designed for programmatic access by AI Agents (e.g., GET /api/services/search).
+Permissions: Public, no authentication required.
+FR3.2: The endpoint shall accept a query parameter (required, free-form natural language text string) representing the AI agent's specific need or task.
+FR3.3: The system shall generate an Embedding vector for the input search query using the same embedding model used for services.
+FR3.4: The system shall perform a high-efficiency vector similarity search (e.g., cosine similarity) against the Embedding vectors of all stored services to find the most semantically relevant matches.
+FR3.5: The system shall return a ranked list of relevant services, ordered by their semantic similarity score. Each service result shall be a structured JSON object including: id, name, description, api_endpoint, and the full openapi_spec JSON inline (or a direct, stable URL to it), enabling immediate programmatic consumption by the AI agent.
+FR3.6: The system shall provide a human-readable web page that displays all the details of a specific service (as in FR3.5), including an interactive Swagger UI rendering of its OpenAPI Spec, for developer convenience and understanding.
+3.4 Basic Usage Tracking
+FR4.1: The system shall expose a dedicated endpoint for AI Agents to report service usage (POST /api/services/{service_id}/usage).
+Permissions: Public, no authentication required.
+FR4.2: Each successful call to this endpoint shall atomically increment the usage_count for the specified service in the database, providing basic analytics.
+4. Non-Functional Requirements
+4.1 Performance
+NFR1.1: Semantic search queries (FR3.1-FR3.5) shall return results within 500 milliseconds for 90% of requests, ensuring rapid tool discovery for AI agents.
+NFR1.2: Service Embedding generation (FR2.3) shall be non-blocking and complete within 2 seconds for providers, ensuring a smooth service upload experience.
+4.2 Security
+NFR2.1: User data (emails) shall be stored securely. All passwords shall be hashed using a strong, industry-standard algorithm (e.g., bcrypt) before storage.
+NFR2.2: Access to all provider and service management APIs (registration, login, upload, edit, delete) shall be strictly protected by JWT-based authentication and authorization. Only the owning provider can modify their services.
+NFR2.3: The public-facing APIs for semantic search and usage reporting shall be accessible without authentication for ease of AI agent integration in MVP.
+NFR2.4: All network communication between the Frontend, Backend, and any external services shall be encrypted using HTTPS.
+NFR2.5 (Rate Limiting): The system shall implement basic rate limiting (e.g., max 100 requests per minute per IP address) on public endpoints (search, usage reporting) to prevent abuse and ensure fair access.
+4.3 Scalability
+NFR3.1: The system architecture shall be designed to allow for horizontal scaling of the Backend API services and the MongoDB database (e.g., sharding) in future development phases, accommodating increased traffic and data volume.
+NFR3.2: The semantic search component shall be capable of efficiently handling a growing number of listed services (e.g., up to 10,000 services in the near future) without significant performance degradation.
+4.4 Usability
+NFR4.1: The Frontend interface for service providers shall be intuitive and straightforward, enabling easy and clear API listing with appropriate guidance for description quality.
+NFR4.2: Comprehensive and clear API documentation (via Swagger UI) for the semantic search endpoint shall be readily available and discoverable by AI Agent developers.
+4.5 Maintainability
+NFR5.1: The codebase shall adhere to a modular and layered architecture (API, business logic, data access), promoting clear separation of concerns and ease of maintenance.
+NFR5.2: Standardized coding conventions (e.g., PEP 8 for Python) and best practices shall be consistently applied throughout the project.
+NFR5.3 (Logging & Monitoring): The system shall implement robust logging for critical application events (e.g., provider authentication attempts, service creation/updates, search queries, API errors) at appropriate levels. These logs shall be structured and accessible for effective monitoring, debugging, and analytics.
+4.6 Availability & Data Integrity
+NFR6.1 (Availability): The AgentMarket MVP backend services shall aim for an uptime availability of 99%.
+NFR6.2 (Backups): All critical database data shall be backed up automatically on a daily basis to prevent data loss.
+5. Interface Requirements
+5.1 Backend API (FastAPI)
+All endpoints defined in sections 3.1 (Provider Management), 3.2 (Service Management), 3.3 (Service Search), and 3.4 (Usage Tracking) shall be exposed as RESTful APIs.
+Interactive API Documentation: A self-generated Swagger UI (provided by FastAPI) shall be automatically available at the /docs endpoint.
+5.2 Frontend (React/Next.js)
+Provider Facing Pages: Will include pages for secure user registration and login, a provider dashboard displaying their listed services, a dedicated form for adding new services, and pages for editing existing service details.
+AI Developer Facing Pages: Will include a basic service search interface (demonstrating the semantic search capability), a page for displaying search results, and detailed service profile pages with an embedded, interactive OpenAPI Spec viewer.
+6. Data Model
+6.1 services Collection
+_id: ObjectId (unique identifier for the service)
+provider_id: ObjectId (foreign key referencing the _id of the providers collection)
+name: string (display name of the API service)
+description: string (detailed textual explanation of the API's functionality, critical for embedding)
+categories: array of strings (classification tags, e.g., "Finance", "AI/ML", "Weather")
+tags: array of strings (optional, additional keywords for search)
+api_endpoint: string (the base URL where the API is hosted, must be HTTPS)
+http_method: string (the primary HTTP method for the API, enum: 'GET', 'POST', 'PUT', 'DELETE')
+openapi_spec: string (JSON string of the full OpenAPI/Swagger Specification, optional but recommended for agent integration)
+embedding: array of floats (the high-dimensional vector representation of the description and other relevant text fields)
+usage_count: integer (counter for how many times the API has been reported as used via AgentMarket, default 0)
+created_at: datetime (timestamp of service creation)
+updated_at: datetime (timestamp of last service update)
+6.2 providers Collection
+_id: ObjectId (unique identifier for the provider)
+name: string (provider's name or company name)
+email: string (provider's email, unique index for login)
+password_hash: string (hashed password for secure storage)
+created_at: datetime (timestamp of provider registration)
+updated_at: datetime (timestamp of last provider profile update)
+7. Technologies and Tools
+Backend Framework: FastAPI (chosen for its performance, async capabilities, and automatic OpenAPI generation)
+Database: MongoDB (chosen for its flexibility with schemaless documents and efficiency with vector storage and queries, especially when integrated with vector search capabilities)
+Authentication: JWT (JSON Web Tokens)
+Embedding Service: OpenAI Embeddings API (initially, for its high quality and ease of integration; potential to swap for open-source models like sentence-transformers for cost optimization or local deployment)
+Frontend Framework: React / Next.js (for building a modern, performant web user interface)
+Deployment: Docker (for containerization and consistent environments), Render/Railway/Vercel (for easy cloud deployment and scaling)
+8. Recommended Project Structure (FastAPI)
+The project structure will be designed with modularity, clean separation of concerns, and future extensibility in mind, while maintaining a practical simplicity suitable for the MVP stage.
+
+agentmarket/
+├── main.py                     # Main entry point for the FastAPI application, registers routers and handles app lifecycle
+├── core/
+│   ├── config.py               # Application-wide settings, environment variables (e.g., database URIs, API keys)
+│   └── embeddings.py           # Low-level interface for connecting to and utilizing the chosen Embedding service (e.g., OpenAI API client)
+├── api/
+│   ├── routes/
+│   │   ├── services.py         # FastAPI router for service-related endpoints (creation, retrieval, update, deletion, and semantic search)
+│   │   └── providers.py        # FastAPI router for provider-related endpoints (authentication, registration, profile management)
+│   └── deps.py                 # FastAPI dependency injection functions (e.g., for database session, JWT authentication)
+├── models/
+│   └── mongo.py                # PyMongo / Motor models, defining the data structure and interaction logic for MongoDB collections
+├── schemas/
+│   ├── service.py              # Pydantic schemas for Service object validation (input/output for API, e.g., ServiceCreate, ServiceOut)
+│   └── provider.py             # Pydantic schemas for Provider object validation (input/output for API, e.g., ProviderRegister, ProviderLogin)
+├── services/
+│   ├── service_logic.py        # Business logic for managing services (CRUD operations, embedding generation, vector search execution)
+│   ├── provider_logic.py       # Business logic for managing providers (registration, authentication, password hashing)
+│   └── embedding_service.py    # High-level business logic for orchestrating embedding generation and semantic search queries
+└── utils/
+    └── validators.py           # General utility functions (e.g., email validation, URL validation, custom data transformations)
+Description of Folder and File Roles:
+main.py:
+
+Initializes the FastAPI app instance.
+Includes all API routers from api/routes/.
+Configures global middleware (e.g., CORS, exception handling).
+Sets up startup/shutdown events (e.g., database connection/disconnection).
+core/:
+
+config.py: Defines a Settings class (using pydantic-settings) to manage all application configurations and environment variables securely.
+embeddings.py: Provides a client or utility functions to interact with the chosen embedding API (e.g., OpenAI's Completion or Embedding API), handling API keys and network requests.
+api/:
+
+routes/: Contains modular FastAPI APIRouter instances. Each file defines endpoints for a specific functional area.
+services.py: Manages all HTTP endpoints related to APIs: adding new services, retrieving details, updating, deleting, and most importantly, the semantic search endpoint for AI agents.
+providers.py: Manages HTTP endpoints for user (provider) authentication, registration, and profile management.
+deps.py: Stores FastAPI dependency functions, which are reusable pieces of logic (e.g., get_db_client to inject the MongoDB client, get_current_provider for JWT authentication).
+models/:
+
+mongo.py: Defines the Python models that mirror the structure of documents in your MongoDB collections. These might be simple Pydantic models for data persistence or more advanced ORM-like objects if using a library like Motor.
+schemas/:
+
+This directory holds Pydantic models used for API request/response validation and serialization. They ensure data integrity at the API boundary.
+service.py: Defines Pydantic schemas for creating new services, representing a service in API responses, and for specific nested structures like APIConfig.
+provider.py: Defines Pydantic schemas for provider registration, login credentials, and how provider data is presented in API responses.
+services/:
+
+This layer encapsulates the core business logic. Functions here operate on data and perform complex operations, independent of the API layer.
+service_logic.py: Contains functions to interact with the services collection (add, retrieve, update, delete services), and potentially orchestrate embedding generation.
+provider_logic.py: Contains functions for provider registration, password hashing, JWT token generation/validation, and provider profile management.
+embedding_service.py: Orchestrates the semantic search process. It takes a query, calls the low-level embedding client, performs the vector similarity search against the database, and returns ranked results.
+utils/:
+
+validators.py: Contains general utility functions that are reusable across different parts of the application, such as email format validation, URL validation, and custom data transformation helpers.
+9. Future Roadmap and Success Metrics (High-Level)
+9.1 Future Roadmap (Not included in MVP but essential for long-term vision)
+Monetization Strategy: Implementation of a robust billing mechanism (e.g., per-call fees, subscription tiers for providers/agents, premium listing options).
+Rating and Review System: A system for AI Agents (or their developers) to rate and review services, enhancing trust and quality signals.
+Standardized Execution Engine (Proxy): Building a centralized proxy layer that handles API calls, simplifying authentication, enforcing rate limits, and providing standardized error handling for agents.
+Human Services Integration: Expanding the platform to include discovery and booking of human-provided services (e.g., expert consultations).
+Advanced Analytics & Dashboards: Detailed usage and performance dashboards for providers and agents.
+Automated API Validation: Tools to automatically test and validate submitted OpenAPI specifications for functionality and correctness.
+9.2 Success Criteria for MVP
+The AgentMarket MVP will be considered a success if it demonstrably validates the core concepts and achieves the following objectives within a designated timeframe (e.g., 3-6 months post-launch):
+
+Provider Acquisition & Content: Attract and retain at least 25 unique service providers who collectively list a minimum of 50 distinct digital APIs with valid OpenAPI specifications.
+AI Agent Engagement (Search): Achieve at least 2,000 semantic search queries made to the AgentMarket API from distinct AI agent instances (or developer accounts).
+Service Consumption (Reported Usage): Record a minimum of 5,000 reported usages of provider APIs through AgentMarket's usage tracking endpoint, indicating active integration by AI agents.
+Validation of Core Value: Gather qualitative feedback from early adopters (providers and AI developers) confirming that AgentMarket significantly simplifies the discovery and integration of APIs for AI agents compared to traditional methods.

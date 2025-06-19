@@ -5,7 +5,7 @@ from agent_market.schemas.provider import ProviderRegister, ProviderOut
 from agent_market.services.provider_logic import (
     register_provider_db, authenticate_provider, create_access_token, get_provider_by_email_db
 )
-from agent_market.api.deps import get_database #, get_current_provider (to be implemented)
+from agent_market.api.deps import get_database, get_current_provider
 from motor.motor_asyncio import AsyncIOMotorDatabase
 import logging
 
@@ -54,10 +54,9 @@ async def login_for_access_token(
     logger.info(f"Provider '{form_data.username}' logged in successfully.")
     return {"access_token": access_token, "token_type": "bearer"}
 
-# Placeholder for /me endpoint (requires get_current_provider dependency)
-# @router.get("/me", response_model=ProviderOut)
-# async def read_current_provider(
-#     current_provider: Annotated[ProviderOut, Depends(get_current_provider)]
-# ):
-#     logger.info(f"Accessing /me endpoint for provider ID: {current_provider.id}")
-#     return current_provider
+@router.get("/me", response_model=ProviderOut)
+async def read_current_provider(
+    current_provider: Annotated[ProviderOut, Depends(get_current_provider)]
+):
+    logger.info(f"Accessing /me endpoint for provider ID: {current_provider.id}")
+    return current_provider

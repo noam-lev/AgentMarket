@@ -12,4 +12,5 @@ dependencies = [
     "python-jose[cryptography]",
     "passlib[bcrypt]",
     "httpx",
+    "pydantic-settings>=2.9.1",
 ]

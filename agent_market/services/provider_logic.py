@@ -38,7 +38,7 @@ async def get_provider_by_email_db(db: AsyncIOMotorDatabase, email: str) -> Opti
     """Fetch a provider document by email."""
     provider_document = await db.providers.find_one({"email": email})
     if provider_document:
-        provider_document["id"] = str(provider_document["_id"])
+        provider_document["_id"] = str(provider_document["_id"])
         return ProviderInDB(**provider_document)
     return None
 
@@ -49,7 +49,7 @@ async def get_provider_by_id_db(db: AsyncIOMotorDatabase, provider_id: str) -> O
         return None
     provider_document = await db.providers.find_one({"_id": ObjectId(provider_id)})
     if provider_document:
-        provider_document["id"] = str(provider_document["_id"])
+        provider_document["_id"] = str(provider_document["_id"])
         return ProviderInDB(**provider_document)
     return None
 

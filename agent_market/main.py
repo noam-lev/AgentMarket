@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from agent_market.core.config import settings
 from agent_market.models.mongo import db
+from agent_market.api.routes import providers  # Add services when implemented
 import logging
 
 logging.basicConfig(level=logging.INFO)
@@ -19,13 +20,12 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title=settings.APP_NAME, lifespan=lifespan)
 
-# from agent_market.api.routes import services, providers
-# app.include_router(services.router, prefix="/api/services", tags=["Services"])
-# app.include_router(providers.router, prefix="/api/providers", tags=["Providers"])
+# Include routers
+app.include_router(providers.router, prefix="/api/providers", tags=["Providers"])
+# app.include_router(services.router, prefix="/api/services", tags=["Services"])  # Uncomment when services implemented
 
 @app.get("/")
 async def read_root():
     """Returns a welcome message from the AgentMarket MVP."""
     return {"message": "Welcome to AgentMarket MVP! The AI-Native API Marketplace."}
 
-# Routers for services and providers will be included here in the future

@@ -21,9 +21,9 @@ class MongoDB:
         """
         if self.client is None:
             try:
+                logger.info(f"Connecting to MongoDB with URI: '{settings.MONGO_URI}'")
                 self.client = AsyncIOMotorClient(settings.MONGO_URI)
-                db_name = settings.MONGO_URI.split('/')[-1].split('?')[0]
-                self.database = self.client[db_name]
+                self.database = self.client.get_default_database()
                 await self.database.command("ping")
                 logger.info(f"Successfully connected to MongoDB database: '{self.database.name}'")
             except Exception as e:

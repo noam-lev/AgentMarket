@@ -17,7 +17,7 @@ Embeddings are generated via the embedding_service module.
 """
 
 from motor.motor_asyncio import AsyncIOMotorDatabase
-from schemas.service import ServiceCreate, ServiceOut, ServiceInDB
+from agent_market.schemas.service import ServiceCreate, ServiceOut, ServiceInDB
 from bson import ObjectId
 from datetime import datetime, timezone
 from typing import List, Optional
@@ -25,7 +25,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from services.embedding_service import generate_service_embedding
+from agent_market.services.embedding_service import generate_service_embedding
 
 async def create_service_db(db: AsyncIOMotorDatabase, service_data: ServiceCreate) -> Optional[ServiceOut]:
     """

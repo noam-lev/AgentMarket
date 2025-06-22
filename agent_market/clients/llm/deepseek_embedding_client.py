@@ -1,8 +1,8 @@
 from typing import List
 import logging
 
-from core.config import settings
-from clients.llm.embedding_client_interface import AbstractEmbeddingClient
+from agent_market.core.config import settings
+from agent_market.clients.llm.embedding_client_interface import AbstractEmbeddingClient
 
 logger = logging.getLogger(__name__)
 

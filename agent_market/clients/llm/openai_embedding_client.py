@@ -34,7 +34,7 @@ class OpenAIEmbeddingClient(AbstractEmbeddingClient):
     async def _get_embedding_with_retry(self, text: str) -> List[float]:
         response = await self._client.embeddings.create(
             input=[text],
-            model="text-embedding-ada-002"
+            model=settings.OPENAI_EMBEDDING_MODEL
         )
         if not response.data or not isinstance(response.data, list) or len(response.data) == 0:
             logger.error(f"OpenAI API returned empty or invalid data structure. Response: {response}")

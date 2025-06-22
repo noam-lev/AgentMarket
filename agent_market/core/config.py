@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     OPENAI_API_KEY: Optional[str] = None
     DEEPSEEK_API_KEY: Optional[str] = None
     EMBEDDING_PROVIDER: str = "openai"  # Default to OpenAI, can be set to 'deepseek' or others
+    OPENAI_EMBEDDING_MODEL: str = "text-embedding-ada-002"  # Default embedding model
     JWT_SECRET_KEY: Optional[str] = None
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30

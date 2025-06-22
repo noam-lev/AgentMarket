@@ -18,9 +18,9 @@ from motor.motor_asyncio import AsyncIOMotorDatabase
 from typing import Annotated, List
 from bson import ObjectId
 
-from schemas.service import ServiceCreate, ServiceOut
-from api.deps import get_database, get_current_provider
-from services.service_logic import (
+from agent_market.schemas.service import ServiceCreate, ServiceOut
+from agent_market.api.deps import get_database, get_current_provider
+from agent_market.services.service_logic import (
     create_service_db, 
     get_service_by_id_db, 
     get_all_services_db, 
@@ -28,8 +28,8 @@ from services.service_logic import (
     delete_service_db,
     increment_service_usage_db
 )
-from services.embedding_service import semantic_search_services
-from schemas.provider import ProviderOut
+from agent_market.services.embedding_service import semantic_search_services
+from agent_market.schemas.provider import ProviderOut
 
 import logging
 

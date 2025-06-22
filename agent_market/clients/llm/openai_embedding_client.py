@@ -3,8 +3,8 @@ from typing import List
 import logging
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 
-from core.config import settings
-from clients.llm.embedding_client_interface import AbstractEmbeddingClient
+from agent_market.core.config import settings
+from agent_market.clients.llm.embedding_client_interface import AbstractEmbeddingClient
 
 logger = logging.getLogger(__name__)
 

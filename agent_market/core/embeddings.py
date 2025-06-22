@@ -1,10 +1,10 @@
 from typing import List, Union, Type
-from core.config import settings
+from agent_market.core.config import settings
 import logging
 
-from clients.llm.embedding_client_interface import AbstractEmbeddingClient
-from clients.llm.openai_embedding_client import OpenAIEmbeddingClient
-# from clients.llm.deepseek_embedding_client import DeepSeekEmbeddingClient
+from agent_market.clients.llm.embedding_client_interface import AbstractEmbeddingClient
+from agent_market.clients.llm.openai_embedding_client import OpenAIEmbeddingClient
+# from agent_market.clients.llm.deepseek_embedding_client import DeepSeekEmbeddingClient
 
 logger = logging.getLogger(__name__)
 

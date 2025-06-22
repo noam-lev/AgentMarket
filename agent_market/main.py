@@ -1,9 +1,9 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
-from core.config import settings
-from models.mongo import db
-from core.embeddings import initialize_embedding_client
-from api.routes import providers  # services router import commented out
+from agent_market.core.config import settings
+from agent_market.models.mongo import db
+from agent_market.core.embeddings import initialize_embedding_client
+from agent_market.api.routes import providers  # services router import commented out
 import logging
 
 logging.basicConfig(level=logging.INFO)

@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field, HttpUrl
-from typing import List, Optional, Literal
+from typing import List, Optional, Literal, Annotated
 from datetime import datetime
 
 class APIConfig(BaseModel):
@@ -35,7 +35,7 @@ class ServiceCreate(BaseModel):
         max_length=1000,
         description="Detailed description of the API's functionality. CRITICAL for semantic search."
     )
-    categories: List[str] = Field(..., min_items=1, description="List of categories this service belongs to (e.g., 'NLP', 'Data Analysis').")
+    categories: List[str] = Field(..., description="List of categories this service belongs to (e.g., 'NLP', 'Data Analysis').")
     tags: Optional[List[str]] = Field(None, description="Optional list of keywords or tags for the service.")
     api: APIConfig = Field(..., description="Technical configuration details for the API.")
     openapi_spec: Optional[str] = Field(None, description="Full OpenAPI/Swagger JSON specification string for the API.")

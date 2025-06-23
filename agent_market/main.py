@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from agent_market.core.config import settings
 from agent_market.models.mongo import db
 from agent_market.core.embeddings import initialize_embedding_client
-from agent_market.api.routes import providers  # services router import commented out
+from agent_market.api.routes import providers, services 
 import logging
 
 logging.basicConfig(level=logging.INFO)
@@ -27,7 +27,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title=settings.APP_NAME, lifespan=lifespan)
 
-# app.include_router(services.router, prefix="/api/services", tags=["Services"])  # Commented out, not implemented yet
+app.include_router(services.router, prefix="/api/services", tags=["Services"])  # Commented out, not implemented yet
 app.include_router(providers.router, prefix="/api/providers", tags=["Providers"])
 
 @app.get("/")

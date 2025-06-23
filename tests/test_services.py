@@ -1,13 +1,26 @@
 import pytest
+import pytest_asyncio
 from httpx import AsyncClient, ASGITransport
 from agent_market.main import app as fastapi_app
 import uuid
+import httpx
+import inspect
+from agent_market.models.mongo import db
 
-@pytest.fixture
+
+@pytest_asyncio.fixture(scope="session", autouse=True)
+async def initialize_db():
+    await db.connect()
+    yield
+    await db.close()
+
+@pytest_asyncio.fixture
 async def test_client():
+    await db.connect()
     transport = ASGITransport(app=fastapi_app)
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
         yield ac
+    await db.close()
 
 @pytest.fixture
 def unique_email():
@@ -17,7 +30,7 @@ def unique_email():
 def unique_service_name():
     return f"Test Service {uuid.uuid4()}"
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def test_provider(test_client, unique_email):
     # Register a new provider
     register_data = {
@@ -26,6 +39,8 @@ async def test_provider(test_client, unique_email):
         "name": "Test Provider"
     }
     resp = await test_client.post("/api/providers/register", json=register_data)
+    if resp.status_code != 201:
+        print("Provider registration failed:", resp.status_code, resp.text)
     assert resp.status_code == 201
     provider = resp.json()
     # Login to get JWT
@@ -38,14 +53,15 @@ async def test_provider(test_client, unique_email):
     token = resp.json()["access_token"]
     return {"provider": provider, "token": token}
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def test_service(test_client, test_provider, unique_service_name):
     # Create a service for the test provider
-    headers = {"Authorization": f"Bearer {test_provider['token']}"}
+    provider = await test_provider
+    headers = {"Authorization": f"Bearer {provider['token']}"}
     service_data = {
         "name": unique_service_name,
         "description": "A test service for API testing.",
-        "provider_id": test_provider["provider"]["id"],
+        "provider_id": provider["provider"]["id"],
         "openapi_spec": "{}"
     }
     resp = await test_client.post("/api/services/", json=service_data, headers=headers)
@@ -59,11 +75,12 @@ async def test_service(test_client, test_provider, unique_service_name):
 
 @pytest.mark.asyncio
 async def test_create_service(test_client, test_provider, unique_service_name):
-    headers = {"Authorization": f"Bearer {test_provider['token']}"}
+    provider = await test_provider
+    headers = {"Authorization": f"Bearer {provider['token']}"}
     service_data = {
         "name": unique_service_name,
         "description": "A test service for API testing.",
-        "provider_id": test_provider["provider"]["id"],
+        "provider_id": provider["provider"]["id"],
         "openapi_spec": "{}"
     }
     resp = await test_client.post("/api/services/", json=service_data, headers=headers)
@@ -78,12 +95,13 @@ async def test_create_service(test_client, test_provider, unique_service_name):
 
 @pytest.mark.asyncio
 async def test_get_service_by_id(test_client, test_provider, unique_service_name):
-    headers = {"Authorization": f"Bearer {test_provider['token']}"}
+    provider = await test_provider
+    headers = {"Authorization": f"Bearer {provider['token']}"}
     # Create service
     service_data = {
         "name": unique_service_name,
         "description": "A test service for get by id.",
-        "provider_id": test_provider["provider"]["id"],
+        "provider_id": provider["provider"]["id"],
         "openapi_spec": "{}"
     }
     resp = await test_client.post("/api/services/", json=service_data, headers=headers)
@@ -101,12 +119,13 @@ async def test_get_service_by_id(test_client, test_provider, unique_service_name
 
 @pytest.mark.asyncio
 async def test_update_service(test_client, test_provider, unique_service_name):
-    headers = {"Authorization": f"Bearer {test_provider['token']}"}
+    provider = await test_provider
+    headers = {"Authorization": f"Bearer {provider['token']}"}
     # Create service
     service_data = {
         "name": unique_service_name,
         "description": "A test service for update.",
-        "provider_id": test_provider["provider"]["id"],
+        "provider_id": provider["provider"]["id"],
         "openapi_spec": "{}"
     }
     resp = await test_client.post("/api/services/", json=service_data, headers=headers)
@@ -125,12 +144,13 @@ async def test_update_service(test_client, test_provider, unique_service_name):
 
 @pytest.mark.asyncio
 async def test_delete_service(test_client, test_provider, unique_service_name):
-    headers = {"Authorization": f"Bearer {test_provider['token']}"}
+    provider = await test_provider
+    headers = {"Authorization": f"Bearer {provider['token']}"}
     # Create service
     service_data = {
         "name": unique_service_name,
         "description": "A test service for delete.",
-        "provider_id": test_provider["provider"]["id"],
+        "provider_id": provider["provider"]["id"],
         "openapi_spec": "{}"
     }
     resp = await test_client.post("/api/services/", json=service_data, headers=headers)
@@ -145,18 +165,19 @@ async def test_delete_service(test_client, test_provider, unique_service_name):
 
 @pytest.mark.asyncio
 async def test_semantic_search(test_client, test_provider, unique_service_name):
-    headers = {"Authorization": f"Bearer {test_provider['token']}"}
+    provider = await test_provider
+    headers = {"Authorization": f"Bearer {provider['token']}"}
     # Create two services
     service_data1 = {
         "name": unique_service_name + " 1",
         "description": "A semantic search test service for AI.",
-        "provider_id": test_provider["provider"]["id"],
+        "provider_id": provider["provider"]["id"],
         "openapi_spec": "{}"
     }
     service_data2 = {
         "name": unique_service_name + " 2",
         "description": "Another semantic search test service for ML.",
-        "provider_id": test_provider["provider"]["id"],
+        "provider_id": provider["provider"]["id"],
         "openapi_spec": "{}"
     }
     resp1 = await test_client.post("/api/services/", json=service_data1, headers=headers)
@@ -175,12 +196,13 @@ async def test_semantic_search(test_client, test_provider, unique_service_name):
 
 @pytest.mark.asyncio
 async def test_report_service_usage(test_client, test_provider, unique_service_name):
-    headers = {"Authorization": f"Bearer {test_provider['token']}"}
+    provider = await test_provider
+    headers = {"Authorization": f"Bearer {provider['token']}"}
     # Create service
     service_data = {
         "name": unique_service_name,
         "description": "A test service for usage reporting.",
-        "provider_id": test_provider["provider"]["id"],
+        "provider_id": provider["provider"]["id"],
         "openapi_spec": "{}"
     }
     resp = await test_client.post("/api/services/", json=service_data, headers=headers)
@@ -193,3 +215,6 @@ async def test_report_service_usage(test_client, test_provider, unique_service_n
     # Cleanup
     resp = await test_client.delete(f"/api/services/{created['id']}", headers=headers)
     assert resp.status_code in (200, 204)
+
+def test_print_asgitransport_signature():
+    print('ASGITransport.__init__ signature:', inspect.signature(ASGITransport.__init__))

@@ -18,7 +18,7 @@ from motor.motor_asyncio import AsyncIOMotorDatabase
 from typing import Annotated, List
 from bson import ObjectId
 
-from agent_market.schemas.service import ServiceCreate, ServiceOut
+from agent_market.schemas.service import ServiceCreate, ServiceOut, ServiceUpdate
 from agent_market.api.deps import get_database, get_current_provider
 from agent_market.services.service_logic import (
     create_service_db, 
@@ -68,6 +68,20 @@ async def create_service_listing(
         )
     return created_service
 
+@router.get("/search", response_model=List[ServiceOut])
+async def search_services_for_agents(
+    db: Annotated[AsyncIOMotorDatabase, Depends(get_database)],
+    query: str = Query(..., min_length=3, description="Natural language query for AI agent semantic search.")
+) -> List[ServiceOut]:
+    """
+    Semantic search for API services. Returns a ranked list of ServiceOut.
+    """
+    logger.info(f"AI Agent search query received: '{query}'")
+    ranked_results = await semantic_search_services(db, query)
+    services_only = [service_out for service_out, _ in ranked_results[:10]]
+    logger.info(f"Returned {len(services_only)} semantic search results for query: '{query}'")
+    return services_only
+
 @router.get("/{service_id}", response_model=ServiceOut)
 async def get_service_details(
     service_id: str,
@@ -85,7 +99,7 @@ async def get_service_details(
 @router.put("/{service_id}", response_model=ServiceOut)
 async def update_service_listing(
     service_id: str,
-    update_data: ServiceCreate,
+    update_data: ServiceUpdate,
     current_provider: Annotated[ProviderOut, Depends(get_current_provider)],
     db: Annotated[AsyncIOMotorDatabase, Depends(get_database)]
 ) -> ServiceOut:
@@ -138,20 +152,6 @@ async def delete_service_listing(
             detail="Failed to delete service."
         )
     return {"message": "Service deleted successfully."}
-
-@router.get("/search", response_model=List[ServiceOut])
-async def search_services_for_agents(
-    db: Annotated[AsyncIOMotorDatabase, Depends(get_database)],
-    query: str = Query(..., min_length=3, description="Natural language query for AI agent semantic search.")
-) -> List[ServiceOut]:
-    """
-    Semantic search for API services. Returns a ranked list of ServiceOut.
-    """
-    logger.info(f"AI Agent search query received: '{query}'")
-    ranked_results = await semantic_search_services(db, query)
-    services_only = [service_out for service_out, _ in ranked_results[:10]]
-    logger.info(f"Returned {len(services_only)} semantic search results for query: '{query}'")
-    return services_only
 
 @router.post("/{service_id}/usage", status_code=status.HTTP_200_OK)
 async def report_service_usage(

@@ -8,12 +8,6 @@ import inspect
 from agent_market.models.mongo import db
 
 
-@pytest_asyncio.fixture(scope="session", autouse=True)
-async def initialize_db():
-    await db.connect()
-    yield
-    await db.close()
-
 @pytest_asyncio.fixture
 async def test_client():
     await db.connect()

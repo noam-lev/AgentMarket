@@ -100,3 +100,39 @@ class ServiceOut(BaseModel):
 
     class Config:
         json_encoders = {datetime: lambda dt: dt.isoformat()}
+
+
+class ServiceUpdate(BaseModel):
+    """
+    Pydantic schema for updating an existing API service listing.
+    All fields are Optional, allowing for partial updates (e.g., only updating description).
+    
+    Guidance for AI Programmer:
+    - This schema is designed specifically for PUT requests where not all fields are present.
+    - Fields are made Optional to allow selective updates.
+    - Note that 'provider_id' is included as Optional, but your API logic will prevent
+      its actual change for security (as you already implemented).
+    """
+    provider_id: Optional[str] = Field(None, description="The ID of the provider uploading this service (should match authenticated provider).")
+    name: Optional[str] = Field(None, min_length=3, max_length=100, description="Name of the service.")
+    description: Optional[str] = Field(
+        None,
+        min_length=50,
+        max_length=1000,
+        description="Detailed description of the API's functionality. CRITICAL for semantic search."
+    )
+    categories: Optional[List[str]] = Field(..., description="List of categories this service belongs to.")
+    tags: Optional[List[str]] = Field(None, description="Optional list of keywords or tags for the service.")
+    
+    api: Optional[APIConfig] = Field(None, description="Technical configuration details for the API.")
+    
+    openapi_spec: Optional[str] = Field(None, description="Full OpenAPI/Swagger JSON specification string for the API.")
+
+    class Config:
+        # Example data for OpenAPI documentation (for the update request)
+        json_schema_extra = {
+            "example": {
+                "description": "An even more advanced API for booking haircuts. Now with 3D barber previews!",
+                "tags": ["haircut", "barber", "appointments", "booking", "AI-powered", "3D-preview"]
+            }
+        }

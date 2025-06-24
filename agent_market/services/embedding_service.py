@@ -12,9 +12,9 @@ For MVP, all vector search is done in-memory. For production, use a vector DB or
 """
 
 from typing import List, Tuple
-from core.embeddings import get_text_embedding
+from agent_market.core.embeddings import get_text_embedding
 from motor.motor_asyncio import AsyncIOMotorDatabase
-from schemas.service import ServiceOut, ServiceInDB
+from agent_market.schemas.service import ServiceOut, ServiceInDB
 import numpy as np
 import logging
 
@@ -68,7 +68,7 @@ async def semantic_search_services(db: AsyncIOMotorDatabase, query_text: str) ->
     all_services_in_db: List[ServiceInDB] = []
     cursor = db.services.find({})
     async for doc in cursor:
-        doc["id"] = str(doc["_id"])
+        doc["_id"] = str(doc["_id"])
         if "embedding" in doc and isinstance(doc["embedding"], list) and all(isinstance(x, float) for x in doc["embedding"]):
             all_services_in_db.append(ServiceInDB(**doc))
         else:

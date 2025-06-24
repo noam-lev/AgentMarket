@@ -41,6 +41,7 @@ async def create_service_db(db: AsyncIOMotorDatabase, service_data: ServiceCreat
     except Exception as e:
         logger.error(f"Failed to generate embedding for service '{service_data.name}': {e}")
         service_dict["embedding"] = []
+    service_dict['api']['endpoint'] = str(service_dict['api']['endpoint'])
     service_dict["usage_count"] = 0
     service_dict["created_at"] = datetime.now(timezone.utc)
     service_dict["updated_at"] = datetime.now(timezone.utc)
@@ -89,6 +90,8 @@ async def update_service_db(db: AsyncIOMotorDatabase, service_id: str, update_da
     if not ObjectId.is_valid(service_id):
         logger.warning(f"Attempted to update service with invalid ID format: {service_id}")
         return None
+    if 'api' in update_data and 'endpoint' in update_data['api']:
+        update_data['api']['endpoint'] = str(update_data['api']['endpoint'])
     update_fields = {k: v for k, v in update_data.items() if v is not None}
     update_fields["updated_at"] = datetime.now(timezone.utc)
     if "description" in update_fields:
